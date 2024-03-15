@@ -13,9 +13,9 @@ THIRD   EQU $5000   ; third third of display (lines 16-23)
     ORG $8000
 
 start:
-    ld bc, 0
+    call init_isr       ; set up interrupt handler
     call draw_screen
-    ld bc, (player_y)   ; put player_x in b and player_y in c
+    ld  bc, (player_y)  ; put player_x in b and player_y in c
     call draw_sprite
 game_loop:
     call check_input
@@ -33,7 +33,7 @@ PROC
     ; writing $0E to port $F5
     ; IN at $F6 - address bits 8 and 9 select player 1/2
     ld  a, $0e      ; 14
-    out ($f5), a  ; select register 14 of the sound chip
+    out ($f5), a    ; select register 14 of the sound chip
     ld  b, 1        ; put player 1 on the address bus
     ld  c, $f6
     in  a, (c)
@@ -181,11 +181,48 @@ check_barrier:
 
 ; player walked into barrier, so play a sound
 bump:
-    ; calling the beeper for now, until the sound driver gets written
-    ld  de, 20      ; # of cycles to play sound
-    ld  hl, 3000    ; waveform period
-    call $03f3      ; PARP or BEEPER, depending on who you ask
+PROC
+LOCAL   loop1, loop2
+    ; We'll write to the sound chip directly instead of setting up a
+    ; routine to use with the driver since we're just playing a simple
+    ; tone. But first, turn of any sound effect currently playing.
+    ld  a, 0
+    ; Start with high order byte, because as soon as it's 0, the
+    ; sound driver will stop calling the routine. We don't want half
+    ; an address to be called if an interrupt occurs between the two
+    ; ld statements.
+    ld  (ch_c_routine+1), a
+    ld  (ch_c_routine), a
+    ; set tone for channel c
+    ld  a, 4            ; 8 bit fine tune register for channel C
+    out (AY_ADDR), a    ; select register
+    ld  a, $3A
+    out (AY_DATA), a
+    ld  a, 5            ; 8 bit coarse tune register for channel C
+    out (AY_ADDR), a
+    out (AY_DATA), a
+    ld  a, 7            ; enable register
+    out (AY_ADDR), a
+    in  a, (AY_DATA)    ; get states of channels
+    and %11111011       ; tone bit for channel c = 0 (on)
+    out  (AY_DATA), a
+    ld  a, 10
+    out (AY_ADDR), a    ; channel C amplitude
+    ld  a, $0F
+    out (AY_DATA), a
+    ld  b, 6            ; wait about a tenth of a second
+loop1:
+    halt
+    djnz loop1
+    ; stop sound (set channel amplitude to 0)
+    ld  a, 0
+    out (AY_DATA), a
+    ld  b, 6        ; wait another tenth of a second
+loop2:
+    halt
+    djnz loop2
     ret
+ENDP
 
 ; wait a little bit
 delay:

@@ -4,9 +4,10 @@
 draw_screen:
 PROC
 LOCAL loop
-    ld hl, (cur_map)
+    ld  bc, 0
+    ld  hl, (cur_map)
 loop:
-    ld e, (hl)
+    ld  e, (hl)
     inc hl
     push hl
     push bc
