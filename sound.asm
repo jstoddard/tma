@@ -50,16 +50,18 @@ music_on:
     ; interrupts
     ld  a, 1
     ld  (ch_a_on), a
-    ;ld  (ch_b_on), a
+    ld  (ch_b_on), a
     ; set volume on channel a and b to $0A (registers 8-9)
+    di
     ld  a, 8
     out (AY_ADDR), a
     ld  a, $0A
     out (AY_DATA), a
-    ;ld  a, 9
-    ;out (AY_ADDR), a
-    ;ld  a, $0A
-    ;out (AY_DATA), a
+    ld  a, 9
+    out (AY_ADDR), a
+    ld  a, $0A
+    out (AY_DATA), a
+    ei
     ret
 
 ; Routine to update sound as necessary

@@ -19,6 +19,7 @@ start:
     call draw_sprite
     call play_ovr       ; start overworld music
 game_loop:
+    call delay
     call check_input
     jr  game_loop
 
@@ -146,7 +147,7 @@ move_e:
     inc b               ; x = x + 1 again
     call draw_sprite    ; draw sprite at new position
     ld  hl, player_x
-    inc (hl)            ; and save new player location
+    inc (hl)            ; and save new player 
     call delay
     ret
 
@@ -239,7 +240,7 @@ delay:
 PROC
 LOCAL loop
     push bc
-    ld  b, 15
+    ld  b, 7
 loop:
     halt
     djnz loop
