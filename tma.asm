@@ -34,10 +34,13 @@ PROC
     ; writing $0E to port $F5
     ; IN at $F6 - address bits 8 and 9 select player 1/2
     ld  a, $0e      ; 14
+    di              ; don't want selected register to be changed by sound
+                    ; routines between the out and in
     out ($f5), a    ; select register 14 of the sound chip
     ld  b, 1        ; put player 1 on the address bus
     ld  c, $f6
     in  a, (c)
+    ei
     ; joystick data in A, with 0 for active
     ; bit 0 - up, bit 1 - down, bit 2 - left, bit 3 - right, bit 7 - button
     bit 0, a
