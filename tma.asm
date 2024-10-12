@@ -17,6 +17,7 @@ start:
     call draw_screen
     ld  bc, (player_y)  ; put player_x in b and player_y in c
     call draw_sprite
+    call play_ovr       ; start overworld music
 game_loop:
     call check_input
     jr  game_loop
@@ -241,5 +242,6 @@ loop:
     INCLUDE graphics.asm
     INCLUDE tileset.asm
     INCLUDE sound.asm
+    INCLUDE music.asm
 
     END start

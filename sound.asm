@@ -44,6 +44,24 @@ music_off:
     out (AY_DATA), a
     ret
 
+; Turn on channels A and B
+music_on:
+    ; set ch_a_on and ch_b_on to 1 so sound routines are called during
+    ; interrupts
+    ld  a, 1
+    ld  (ch_a_on), a
+    ;ld  (ch_b_on), a
+    ; set volume on channel a and b to $0F (registers 8-9)
+    ld  a, 8
+    out (AY_ADDR), a
+    ld  a, $0F
+    out (AY_DATA), a
+    ;ld  a, 9
+    ;out (AY_ADDR), a
+    ;ld  a, $0F
+    ;out (AY_DATA), a
+    ret
+
 ; Routine to update sound as necessary
 ; called 60 times per second by interrupt handler (when bit 1 of isubstate
 ; is set)
@@ -79,12 +97,14 @@ LOCAL   cont, enable, play_tone
     ld  hl, (ch_a_at)
     inc hl
     inc hl
+    push hl             ; save updated location (ch_a_at+2)
     ld  bc, (ch_a_start)
     or  a               ; clear carry flag
     sbc hl, bc
     ld  bc, (ch_a_len)
-    sbc hl, bc
-    jr  nz, cont
+    sbc hl, bc          ; hl-bc (ch_a_at+2-ch_a_len = 0)?
+    pop hl              ; restore hl to ch_a_at+2
+    jr  nz, cont        ; proceed if ch_a_at+2-ch_a_len != 0
     ld  hl, (ch_a_start)  ; we reached the end of the music data, start over
 cont:
     ld  a, 7
@@ -128,11 +148,13 @@ PROC
     ld  hl, (ch_b_at)
     inc hl
     inc hl
+    push hl             ; save updated location (ch_b_at+2)
     ld  bc, (ch_b_start)
     or  a               ; clear carry flag
     sbc hl, bc
     ld  bc, (ch_b_len)
     sbc hl, bc
+    pop hl              ; restore hl to ch_b_at+2
     jr  nz, cont
     ld  hl, (ch_b_start)  ; we reached the end of the music data, start over
 cont:
@@ -175,10 +197,10 @@ ch_a_len:   dw  $0000   ; length of music data for channel A
 ch_a_start: dw  $0000   ; pointer to beginning of music data for A
 ch_a_at:    dw  $0000   ; pointer to current part of music data for A
 ch_a_ctr    db  $00     ; counter for channel a
-ch_b_on:    db  $00     ; whether music is currently playing on Channel A
-ch_b_len:   dw  $0000   ; length of music data for channel A
-ch_b_start: dw  $0000   ; pointer to beginning of music data for A
-ch_b_at:    dw  $0000   ; pointer to current part of music data for A
+ch_b_on:    db  $00     ; whether music is currently playing on Channel B
+ch_b_len:   dw  $0000   ; length of music data for channel B
+ch_b_start: dw  $0000   ; pointer to beginning of music data for B
+ch_b_at:    dw  $0000   ; pointer to current part of music data for B
 ch_b_ctr:   db  $00
 
 ; Tone tables
@@ -322,7 +344,7 @@ init_isr:
 ; Currently bit 1 is for the sound routine. Bit 0 is intended for a
 ; drawing routine for animation, so that it gets called first during the
 ; vertical blank period.
-isubstate   db  $00
+isubstate   db  $02
 
 ; Interrupt handler
 isr_start:
