@@ -198,6 +198,7 @@ LOCAL   loop1, loop2
     ld  (ch_c_routine+1), a
     ld  (ch_c_routine), a
     ; set tone for channel c
+    di
     ld  a, 4            ; 8 bit fine tune register for channel C
     out (AY_ADDR), a    ; select register
     ld  a, $3A
@@ -214,14 +215,19 @@ LOCAL   loop1, loop2
     out (AY_ADDR), a    ; channel C amplitude
     ld  a, $0F
     out (AY_DATA), a
+    ei
     ld  b, 6            ; wait about a tenth of a second
 loop1:
     halt
     djnz loop1
     ; stop sound (set channel amplitude to 0)
+    di
+    ld  a, 10
+    out (AY_ADDR), a    ; channel C amplitude
     ld  a, 0
     out (AY_DATA), a
     ld  b, 6        ; wait another tenth of a second
+    ei
 loop2:
     halt
     djnz loop2

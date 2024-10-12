@@ -51,14 +51,14 @@ music_on:
     ld  a, 1
     ld  (ch_a_on), a
     ;ld  (ch_b_on), a
-    ; set volume on channel a and b to $0F (registers 8-9)
+    ; set volume on channel a and b to $0A (registers 8-9)
     ld  a, 8
     out (AY_ADDR), a
-    ld  a, $0F
+    ld  a, $0A
     out (AY_DATA), a
     ;ld  a, 9
     ;out (AY_ADDR), a
-    ;ld  a, $0F
+    ;ld  a, $0A
     ;out (AY_DATA), a
     ret
 
@@ -122,6 +122,7 @@ enable:
     and %11111110
     out (AY_DATA), a
 play_tone:
+    ld  a, (hl)         ; note to play (again)
     call get_tone
     ld  a, 0
     out (AY_ADDR), a
@@ -173,6 +174,7 @@ enable:
     and %11111101
     out (AY_DATA), a
 play_tone:
+    ld  a, (hl)         ; note to play (again)
     call get_tone
     ld  a, 2
     out (AY_ADDR), a
