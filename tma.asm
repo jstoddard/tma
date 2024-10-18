@@ -26,6 +26,11 @@ game_loop:
 ; some variables
 player_y:   db  $09
 player_x:   db  $05
+cur_world_w:    db  2
+cur_world_h:    db  2
+cur_world_map:  dw  overworld_nw
+cur_screen_y:   db  1
+cur_screen_x:    db  0
 cur_map:    dw  overworld_sw
 
 ; check for player input and take appropriate action
@@ -78,6 +83,9 @@ ENDP
 
 ; player wants to move upward (either Q pressed or joystick in up position)
 move_n:
+    ld  a, (player_y)   ; check if player is already at top of screen
+    cp  0
+    jp  z, screen_up    ; if yes, change screen instead of moving player
     ld  hl, player_n
     ld  (cur_sprite), hl
     ld  hl, player_n_mask
@@ -103,6 +111,9 @@ move_n:
 
 ; player wants to move downward (A or joystick down)
 move_s:
+    ld  a, (player_y)   ; check if player is already at bottom of screen
+    cp  11
+    jp  z, screen_down  ; if yes, change screen instead of moving player
     ld  hl, player_s
     ld  (cur_sprite), hl
     ld  hl, player_s_mask
@@ -128,6 +139,9 @@ move_s:
 
 ; player wants to move to the right (P or joystick right)
 move_e:
+    ld  a, (player_x)   ; check if player is already at right end of screen
+    cp  15
+    jp  z, screen_right ; if yes, change screen instead of moving player
     ld  hl, player_e
     ld  (cur_sprite), hl
     ld  hl, player_e_mask
@@ -153,6 +167,9 @@ move_e:
 
 ; player wants to move to the left (O or joystick left)
 move_w:
+    ld  a, (player_x)   ; check if player is already at left end of screen
+    cp  0
+    jp  z, screen_left  ; if yes, change screen instead of moving player
     ld  hl, player_w
     ld  (cur_sprite), hl
     ld  hl, player_w_mask
@@ -178,11 +195,100 @@ move_w:
 
 ; is tile at bc a barrier?
 check_barrier:
-    ld  hl, overworld_sw
+    ld  hl, (cur_map)
     call gettileno
     ld  a, e
     cp BARRIERS
     ret
+
+; load and draw map for cur_screen_x, cur_screen_y
+load_screen:
+PROC
+LOCAL mul1, mul2
+    ; calculate cur_screen_y*cur_world_w+cur_screen_x
+    ld  hl, cur_screen_y
+    ld  d, (hl)
+    ld  hl, cur_world_w
+    ld  b, (hl)
+    ld  a, 0
+mul1:
+    add a, d
+    djnz mul1
+    ld  hl, cur_screen_x
+    ld  d, (hl)
+    add a, d
+    ; multiply by 192 bytes per map to get offset from cur_world_map
+    ; we need 16-bit numbers at this point
+    ld  e, a
+    ld  d, 0
+    ld  hl, 0
+    ld  b, 192
+mul2:
+    add hl, de
+    djnz mul2
+    ; let cur_map = cur_world_map + calculated value
+    ld  bc, (cur_world_map)
+    add hl, bc
+    ld  (cur_map), hl
+    call draw_screen
+    ret
+ENDP
+
+; player at left edge of screen, going further left
+screen_left:
+PROC
+    ld  hl, cur_screen_x
+    dec (hl)
+    ; move player to the right of the new screen
+    ld  a, 15
+    ld  (player_x), a
+    call load_screen
+    ld  bc, (player_y)  ; put player_x in b and player_y in c
+    call draw_sprite
+    ret
+ENDP
+
+; player at right edge of screen, going further right
+screen_right:
+PROC
+    ld  hl, cur_screen_x
+    inc (hl)
+    ; move player to the left of the new screen
+    ld  a, 0
+    ld  (player_x), a
+    call load_screen
+    ld  bc, (player_y)  ; put player_x in b and player_y in c
+    call draw_sprite
+    ret
+ENDP
+
+; player at top edge of screen, going up
+screen_up:
+PROC
+    ld  hl, cur_screen_y
+    dec (hl)
+    ; move player to the bottom of the new screen
+    ld  a, 11
+    ld  (player_y), a
+    call load_screen
+    ld  bc, (player_y)  ; put player_x in b and player_y in c
+    call draw_sprite
+    ret
+ENDP
+
+; player at bottom edge of screen, going down
+screen_down:
+PROC
+    ld  hl, cur_screen_y
+    inc (hl)
+    ; move player to the top of the new screen
+    ld  a, 0
+    ld  (player_y), a
+    call load_screen
+    ld  bc, (player_y)  ; put player_x in b and player_y in c
+    call draw_sprite
+    ret
+ENDP
 
 ; player walked into barrier, so play a sound
 bump:
