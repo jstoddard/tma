@@ -34,6 +34,21 @@ tileset:
     db $88,$88,$77,$77,$88,$88,$77,$77
     db $88,$88,$77,$77,$88,$88,$77,$77
     db $88,$88,$77,$77,$88,$88,$77,$77
+; tile 6 - castle
+    db $EF,$F7,$E7,$F3,$EF,$F7,$EF,$F7
+    db $C7,$E3,$83,$C1,$00,$00,$00,$00
+    db $10,$08,$10,$08,$11,$88,$13,$C8
+    db $07,$E0,$07,$E0,$07,$E0,$07,$E0
+; tile 7 - town
+    db $FC,$3F,$F8,$1F,$F3,$0F,$F3,$0F
+    db $F0,$1B,$FF,$B1,$C0,$E0,$80,$60
+    db $00,$24,$06,$20,$06,$24,$00,$20
+    db $30,$20,$30,$24,$30,$24,$30,$24
+; tile 8 - cave
+    db $FF,$FF,$FA,$9F,$E1,$87,$D0,$8B
+    db $CB,$D3,$87,$E1,$EF,$F1,$9F,$FF
+    db $8F,$F1,$CF,$F1,$AF,$FB,$DF,$F5
+    db $8F,$FB,$8F,$F1,$DF,$F1,$AF,$FB
 
 ; Tile attributes - 1 byte for each tile
 ; Sprites will be drawn over tiles in the foreground color and outlined
@@ -57,7 +72,7 @@ tileatt:
     db %00100000
     db %00100110    ; tile 3 - trunk yellow on green
     db %00100110
-    db %00111000    ; tile 4 - mountain is black on white
+    db %00111000    ; tile 4 - mountain is black on gray
     db %00111000
     db %00111000
     db %00111000
@@ -65,3 +80,15 @@ tileatt:
     db %10001101
     db %10001101
     db %10001101
+    db %00111100    ; tile 6 - top of castle is green on gray
+    db %00111100
+    db %00111000    ; tile 6 - bottom of castle is black on gray
+    db %00111000
+    db %00111100    ; tile 7 - top of town green on gray
+    db %00111100
+    db %00111000    ; tile 7 - bottom of town black on gray
+    db %00111000
+    db %00111000    ; tile 8 - cave is black on gray
+    db %00111000
+    db %00111000
+    db %00111000
